@@ -92,6 +92,7 @@ Building the Project
 ```
 git clone https://github.com/daviko/bci-users.git
 cd bci-users
+git checkout develop
 ```
 
 ### Build the project
