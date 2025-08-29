@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bci-users</a> &gt; <a href="index.source.html" class="el_package">com.bci.user.security</a> &gt; <span class="el_source">SecurityConfig.java</span></div><h1>SecurityConfig.java</h1><pre class="source lang-java linenums">package com.bci.user.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+  private final JwtTokenProvider jwtTokenProvider;
+
+<span class="nc" id="L18">  public SecurityConfig(JwtTokenProvider jwtTokenProvider) {</span>
+<span class="nc" id="L19">    this.jwtTokenProvider = jwtTokenProvider;</span>
+<span class="nc" id="L20">  }</span>
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+<span class="nc" id="L24">    return new BCryptPasswordEncoder();</span>
+  }
+
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+<span class="nc" id="L29">    http.cors()</span>
+<span class="nc" id="L30">        .and()</span>
+<span class="nc" id="L31">        .csrf()</span>
+<span class="nc" id="L32">        .disable()</span>
+<span class="nc" id="L33">        .authorizeRequests()</span>
+<span class="nc" id="L34">        .antMatchers(&quot;/api/v1/sign-up&quot;)</span>
+<span class="nc" id="L35">        .permitAll() // Allow sign-up without authentication</span>
+<span class="nc" id="L36">        .antMatchers(&quot;/h2-console/**&quot;)</span>
+<span class="nc" id="L37">        .permitAll() // Allow H2 console</span>
+<span class="nc" id="L38">        .anyRequest()</span>
+<span class="nc" id="L39">        .authenticated() // All other endpoints require authentication</span>
+<span class="nc" id="L40">        .and()</span>
+<span class="nc" id="L41">        .addFilterBefore(</span>
+            new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+<span class="nc" id="L43">        .headers()</span>
+<span class="nc" id="L44">        .frameOptions()</span>
+<span class="nc" id="L45">        .disable(); // For H2 console</span>
+<span class="nc" id="L46">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

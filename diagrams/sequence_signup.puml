@@ -1,0 +1,51 @@
+@startuml
+actor Client
+participant UserController
+participant UserService
+participant UserRepository
+participant PasswordEncoder
+participant JwtTokenProvider
+participant H2Database
+participant GlobalExceptionHandler
+
+Client -> UserController: POST /api/v1/sign-up (UserRequest)
+UserController -> UserController: Validate @Valid annotation
+
+alt Validation fails
+    UserController -> GlobalExceptionHandler: MethodArgumentNotValidException
+    GlobalExceptionHandler -> Client: 400 Bad Request with error details
+else Validation passes
+    UserController -> UserService: createUser(UserRequest)
+
+    UserService -> UserRepository: findByEmail(email)
+    UserRepository -> H2Database: SELECT * FROM users WHERE email = ?
+    H2Database --> UserRepository: User data (if exists)
+    UserRepository --> UserService: Optional<User>
+
+    alt User already exists
+        UserService -> UserService: Throw UserAlreadyExistsException
+        UserService --> UserController: UserAlreadyExistsException
+        UserController -> GlobalExceptionHandler: Handle exception
+        GlobalExceptionHandler -> Client: 409 Conflict with error details
+    else User doesn't exist
+        UserService -> PasswordEncoder: encode(password)
+        PasswordEncoder --> UserService: encodedPassword (BCrypt)
+
+        UserService -> JwtTokenProvider: generateToken(email)
+        JwtTokenProvider -> JwtTokenProvider: Create secure JWT with HS512
+        JwtTokenProvider --> UserService: jwtToken
+
+        UserService -> UserService: build User entity with encrypted password
+
+        UserService -> UserRepository: save(user)
+        UserRepository -> H2Database: INSERT INTO users + phones
+        H2Database --> UserRepository: Saved user with UUID
+        UserRepository --> UserService: Saved User entity
+
+        UserService -> UserService: convert to UserResponse
+        UserService --> UserController: UserResponse
+
+        UserController -> Client: 201 Created with UserResponse\n(includes JWT token)
+    end
+end
+@enduml

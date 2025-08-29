@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bci-users</a> &gt; <a href="index.source.html" class="el_package">com.bci.user.service</a> &gt; <span class="el_source">UserServiceImpl.java</span></div><h1>UserServiceImpl.java</h1><pre class="source lang-java linenums">package com.bci.user.service;
+
+import com.bci.user.dto.UserRequest;
+import com.bci.user.dto.UserResponse;
+import com.bci.user.exception.UserAlreadyExistsException;
+import com.bci.user.model.User;
+import com.bci.user.repository.UserRepository;
+import com.bci.user.security.JwtTokenProvider;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class UserServiceImpl implements UserService {
+
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final JwtTokenProvider jwtTokenProvider;
+
+  public UserServiceImpl(
+      UserRepository userRepository,
+      PasswordEncoder passwordEncoder,
+<span class="nc" id="L25">      JwtTokenProvider jwtTokenProvider) {</span>
+<span class="nc" id="L26">    this.userRepository = userRepository;</span>
+<span class="nc" id="L27">    this.passwordEncoder = passwordEncoder;</span>
+<span class="nc" id="L28">    this.jwtTokenProvider = jwtTokenProvider;</span>
+<span class="nc" id="L29">  }</span>
+
+  @Override
+  @Transactional
+  public UserResponse createUser(UserRequest userRequest) {
+    // Check if user already exists
+<span class="nc bnc" id="L35" title="All 2 branches missed.">    if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {</span>
+<span class="nc" id="L36">      throw new UserAlreadyExistsException(</span>
+<span class="nc" id="L37">          &quot;User with email &quot; + userRequest.getEmail() + &quot; already exists&quot;);</span>
+    }
+
+    // Create new user
+<span class="nc" id="L41">    User user = new User();</span>
+<span class="nc" id="L42">    user.setName(userRequest.getName());</span>
+<span class="nc" id="L43">    user.setEmail(userRequest.getEmail());</span>
+<span class="nc" id="L44">    user.setPassword(passwordEncoder.encode(userRequest.getPassword()));</span>
+
+    // Set phones if provided
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    if (userRequest.getPhones() != null) {</span>
+<span class="nc" id="L48">      user.setPhones(PhoneMapper.toEntities(userRequest.getPhones()));</span>
+    }
+
+    // Generate token
+<span class="nc" id="L52">    String token = jwtTokenProvider.generateToken(userRequest.getEmail());</span>
+<span class="nc" id="L53">    user.setToken(token);</span>
+<span class="nc" id="L54">    user.setLastLogin(LocalDateTime.now());</span>
+
+    // Save user
+<span class="nc" id="L57">    User savedUser = userRepository.save(user);</span>
+
+<span class="nc" id="L59">    return UserMapper.toResponse(savedUser);</span>
+  }
+
+  @Override
+  @Transactional
+  public Optional&lt;UserResponse&gt; getUserByToken(String token) {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">    if (jwtTokenProvider.validateToken(token)) {</span>
+<span class="nc" id="L66">      String email = jwtTokenProvider.getUsernameFromToken(token);</span>
+<span class="nc" id="L67">      Optional&lt;User&gt; user = userRepository.findByEmail(email);</span>
+
+<span class="nc bnc" id="L69" title="All 2 branches missed.">      if (user.isPresent()) {</span>
+        // Update last login and token
+<span class="nc" id="L71">        User foundUser = user.get();</span>
+<span class="nc" id="L72">        String newToken = jwtTokenProvider.generateToken(email);</span>
+<span class="nc" id="L73">        foundUser.setToken(newToken);</span>
+<span class="nc" id="L74">        foundUser.setLastLogin(LocalDateTime.now());</span>
+<span class="nc" id="L75">        userRepository.save(foundUser);</span>
+
+<span class="nc" id="L77">        return Optional.of(UserMapper.toResponse(foundUser));</span>
+      }
+    }
+<span class="nc" id="L80">    return Optional.empty();</span>
+  }
+
+  @Override
+  public Optional&lt;UserResponse&gt; getUserByEmail(String email) {
+<span class="nc" id="L85">    return userRepository.findByEmail(email).map(UserMapper::toResponse);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bci.user.controller.UserControllerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-08-28T02:18:30.935Z" hostname="CO-2J2MQL3" time="1.26">
+  <properties/>
+  <testcase name="login should return 200 OK when token without 'Bearer ' prefix is valid" classname="com.bci.user.controller.UserControllerTest" time="1.221"/>
+  <testcase name="login should return 401 UNAUTHORIZED when token is invalid" classname="com.bci.user.controller.UserControllerTest" time="0.009"/>
+  <testcase name="signUp should return 201 CREATED with UserResponse when user is created" classname="com.bci.user.controller.UserControllerTest" time="0.009"/>
+  <testcase name="login should return 200 OK when token is valid" classname="com.bci.user.controller.UserControllerTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

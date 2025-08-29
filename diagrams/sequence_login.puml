@@ -1,0 +1,62 @@
+@startuml
+actor Client
+participant UserController
+participant JwtTokenFilter
+participant UserService
+participant JwtTokenProvider
+participant UserRepository
+participant H2Database
+participant SecurityContextHolder
+
+Client -> UserController: GET /api/v1/login\nAuthorization: Bearer <token>
+
+UserController -> UserController: Extract token from header\n(remove "Bearer " prefix if present)
+
+alt Token is null or empty
+    UserController -> Client: 401 Unauthorized
+else Token exists
+    UserController -> UserService: getUserByToken(token)
+
+    UserService -> JwtTokenProvider: validateToken(token)
+    JwtTokenProvider -> JwtTokenProvider: Verify signature and expiration
+    JwtTokenProvider --> UserService: true/false
+
+    alt Token is invalid
+        UserService --> UserController: Empty Optional
+        UserController -> Client: 401 Unauthorized
+    else Token is valid
+        UserService -> JwtTokenProvider: getUsernameFromToken(token)
+        JwtTokenProvider --> UserService: email
+
+        UserService -> UserRepository: findByEmail(email)
+        UserRepository -> H2Database: SELECT * FROM users WHERE email = ?
+        H2Database --> UserRepository: User data
+        UserRepository --> UserService: Optional<User>
+
+        alt User not found
+            UserService --> UserController: Empty Optional
+            UserController -> Client: 401 Unauthorized
+        else User found
+            UserService -> JwtTokenProvider: generateToken(email)
+            JwtTokenProvider --> UserService: newToken
+
+            UserService -> UserService: update user token and lastLogin
+            UserService -> UserRepository: save(updatedUser)
+            UserRepository -> H2Database: UPDATE users SET token=?, lastLogin=?
+            H2Database --> UserRepository: Update confirmation
+
+            UserService -> UserService: convert to UserResponse
+            UserService --> UserController: UserResponse
+
+            UserController -> Client: 200 OK with UserResponse\n(includes new JWT token)
+        end
+    end
+end
+
+note over JwtTokenFilter, SecurityContextHolder
+JwtTokenFilter (not shown in controller flow)
+intercepts requests before controller,
+validates JWT and sets authentication
+in SecurityContextHolder
+end note
+@enduml

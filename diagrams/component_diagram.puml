@@ -1,0 +1,51 @@
+@startuml
+package "User Management Microservice" {
+  [UserController] as Controller
+  [UserService] as Service
+  [UserServiceImpl] as ServiceImpl
+  [UserRepository] as Repository
+  [JwtTokenProvider] as JWT
+  [PasswordEncoder] as Encoder
+  [JwtTokenFilter] as Filter
+  [SecurityConfig] as Security
+  [GlobalExceptionHandler] as ExceptionHandler
+  [H2 Database] as Database
+
+  Service .> ServiceImpl : implements
+}
+
+[Client] as Client
+
+Controller --> Service
+ServiceImpl --> Repository
+ServiceImpl --> JWT
+ServiceImpl --> Encoder
+Repository --> Database
+Controller --> ExceptionHandler
+
+Security --> Filter
+Filter --> JWT
+Security --> Encoder
+
+Client --> Controller
+Controller --> Client
+
+Filter --> SecurityContextHolder : sets authentication
+
+note right of Filter
+Extracts JWT from Authorization header
+Validates token and sets security context
+end note
+
+note right of JWT
+Generates and validates JWT tokens
+Uses HS512 algorithm with secure key
+end note
+
+note right of Security
+Configures Spring Security
+Allows public access to /sign-up
+Requires authentication for other endpoints
+end note
+
+@enduml

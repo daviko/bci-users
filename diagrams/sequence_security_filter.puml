@@ -1,0 +1,38 @@
+@startuml
+actor Client
+participant JwtTokenFilter
+participant JwtTokenProvider
+participant SecurityContextHolder
+participant UserController
+
+Client -> JwtTokenFilter: HTTP Request with Authorization header
+
+JwtTokenFilter -> JwtTokenFilter: resolveToken(request)\nExtract token from "Bearer " prefix
+
+alt Token is null
+    JwtTokenFilter -> UserController: Continue without authentication
+else Token exists
+    JwtTokenFilter -> JwtTokenProvider: validateToken(token)
+    JwtTokenProvider --> JwtTokenFilter: Validation result
+
+    alt Token is valid
+        JwtTokenFilter -> JwtTokenProvider: getAuthentication(token)
+        JwtTokenProvider -> JwtTokenProvider: Create UsernamePasswordAuthenticationToken
+        JwtTokenProvider --> JwtTokenFilter: Authentication object
+
+        JwtTokenFilter -> SecurityContextHolder: setAuthentication(auth)
+        SecurityContextHolder --> JwtTokenFilter: Security context updated
+    else Token is invalid
+        JwtTokenFilter -> UserController: Continue without authentication
+    end
+end
+
+JwtTokenFilter -> UserController: Continue request processing
+
+alt Request to protected endpoint
+    UserController -> UserController: Check SecurityContext for authentication
+    UserController -> Client: Process request or return 401/403
+else Request to public endpoint
+    UserController -> Client: Process request normally
+end
+@enduml

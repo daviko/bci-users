@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bci-users</a> &gt; <a href="index.source.html" class="el_package">com.bci.user.service</a> &gt; <span class="el_source">UserMapper.java</span></div><h1>UserMapper.java</h1><pre class="source lang-java linenums">package com.bci.user.service;
+
+import com.bci.user.dto.UserResponse;
+import com.bci.user.model.User;
+
+<span class="nc" id="L6">public class UserMapper {</span>
+
+  public static UserResponse toResponse(User user) {
+<span class="nc" id="L9">    return new UserResponse(</span>
+<span class="nc" id="L10">        user.getId(),</span>
+<span class="nc" id="L11">        user.getCreated(),</span>
+<span class="nc" id="L12">        user.getLastLogin(),</span>
+<span class="nc" id="L13">        user.getToken(),</span>
+<span class="nc" id="L14">        user.getIsActive(),</span>
+<span class="nc" id="L15">        user.getName(),</span>
+<span class="nc" id="L16">        user.getEmail(),</span>
+<span class="nc" id="L17">        user.getPassword(),</span>
+<span class="nc" id="L18">        PhoneMapper.toResponses(user.getPhones()));</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
