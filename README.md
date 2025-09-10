@@ -20,6 +20,8 @@ security features.
 
 ## 📋 API Endpoints
 
+You can check API description by pasting the content of **src/main/resources/docs/swagger.yaml** into [Swagger Editor](https://editor.swagger.io).
+
 ### Sign Up
 
 **POST** `/api/v1/sign-up`

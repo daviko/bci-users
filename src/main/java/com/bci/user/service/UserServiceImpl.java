@@ -12,6 +12,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of the {@link UserService} interface.
+ * <p>
+ * Provides business logic for user management, including:
+ * <ul>
+ *   <li>Creating new users with encoded passwords and JWT tokens.</li>
+ *   <li>Fetching users by JWT token with token refresh and login tracking.</li>
+ *   <li>Retrieving users by email.</li>
+ * </ul>
+ * </p>
+ */
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -28,6 +39,24 @@ public class UserServiceImpl implements UserService {
     this.jwtTokenProvider = jwtTokenProvider;
   }
 
+  /**
+   * Creates a new user account.
+   * <p>
+   * Steps performed:
+   * <ol>
+   *   <li>Checks if a user with the given email already exists, throwing
+   *   {@link UserAlreadyExistsException} if found.</li>
+   *   <li>Encodes the password using {@link PasswordEncoder}.</li>
+   *   <li>Maps any provided phones using {@link PhoneMapper}.</li>
+   *   <li>Generates a JWT token for the user.</li>
+   *   <li>Saves the new user in the database and returns a {@link UserResponse}.</li>
+   * </ol>
+   * </p>
+   *
+   * @param userRequest the user registration details
+   * @return a {@link UserResponse} with the saved user information
+   * @throws UserAlreadyExistsException if a user with the given email already exists
+   */
   @Override
   @Transactional
   public UserResponse createUser(UserRequest userRequest) {
@@ -59,6 +88,22 @@ public class UserServiceImpl implements UserService {
     return UserMapper.toResponse(savedUser);
   }
 
+  /**
+   * Retrieves a user by validating and parsing a JWT token.
+   * <p>
+   * Steps performed:
+   * <ol>
+   *   <li>Validates the token using {@link JwtTokenProvider}.</li>
+   *   <li>Extracts the email and retrieves the corresponding user.</li>
+   *   <li>If found, generates a new token, updates the user's last login, and saves changes.</li>
+   *   <li>Returns the updated user as a {@link UserResponse} wrapped in {@link Optional}.</li>
+   * </ol>
+   * </p>
+   *
+   * @param token the JWT token string
+   * @return an {@link Optional} containing the {@link UserResponse} if the token is valid and user is found,
+   *         or empty otherwise
+   */
   @Override
   @Transactional
   public Optional<UserResponse> getUserByToken(String token) {
@@ -80,6 +125,12 @@ public class UserServiceImpl implements UserService {
     return Optional.empty();
   }
 
+  /**
+   * Retrieves a user by email address.
+   *
+   * @param email the email of the user to search for
+   * @return an {@link Optional} containing the {@link UserResponse} if found, or empty otherwise
+   */
   @Override
   public Optional<UserResponse> getUserByEmail(String email) {
     return userRepository.findByEmail(email).map(UserMapper::toResponse);

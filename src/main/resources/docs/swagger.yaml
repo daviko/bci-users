@@ -1,0 +1,132 @@
+openapi: 3.0.1
+info:
+  title: User Management API
+  description: API for user registration and authentication with JWT-based security
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+paths:
+  /sign-up:
+    post:
+      summary: User sign-up
+      description: Creates a new user account with email and password validation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+            example:
+              name: "John Doe"
+              email: "john.doe@example.com"
+              password: "a1Bcdefg23"
+              phones:
+                - number: 1234567890
+                  citycode: 1
+                  contrycode: "57"
+      responses:
+        '201':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Bad request (invalid input)
+        '409':
+          description: Conflict (user already exists)
+
+  /login:
+    get:
+      summary: User login
+      description: Authenticates a user by JWT token and returns user details with refreshed token.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "Bearer eyJhbGciOiJIUzI1NiJ9..."
+          description: Bearer JWT token
+      responses:
+        '200':
+          description: User authenticated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized (invalid or expired token)
+
+components:
+  schemas:
+    UserRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          example: "a1Bcdefg23"
+        phones:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneRequest'
+
+    PhoneRequest:
+      type: object
+      properties:
+        number:
+          type: integer
+          example: 1234567890
+        citycode:
+          type: integer
+          example: 1
+        contrycode:
+          type: string
+          example: "57"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "e5c6cf84-8860-4c00-91cd-22d3be28904e"
+        created:
+          type: string
+          format: date-time
+          example: "2023-10-15T10:30:00.123Z"
+        lastLogin:
+          type: string
+          format: date-time
+          example: "2023-10-15T11:30:00.123Z"
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9..."
+        isActive:
+          type: boolean
+          example: true
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john.doe@example.com"
+        password:
+          type: string
+          example: "$2a$10$abcdefghijklmnopqrstuvwxyz123456"
+        phones:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneRequest'

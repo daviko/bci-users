@@ -15,6 +15,14 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+/**
+ * Utility component responsible for generating, parsing, and validating JWT tokens.
+ * <p>
+ * This provider is used by authentication filters and services to securely manage
+ * tokens for user sessions. It also generates {@link Authentication} objects
+ * that can be stored in the Spring Security context.
+ * </p>
+ */
 @Component
 @Slf4j
 public class JwtTokenProvider {
@@ -28,6 +36,12 @@ public class JwtTokenProvider {
     this.jwtExpiration = jwtExpiration;
   }
 
+  /**
+   * Generates a JWT token for the given user email.
+   *
+   * @param email the email address of the authenticated user
+   * @return a signed JWT token string containing the user email as its subject
+   */
   public String generateToken(String email) {
     Date now = new Date();
     Date expiryDate = new Date(now.getTime() + jwtExpiration);
@@ -40,12 +54,27 @@ public class JwtTokenProvider {
         .compact();
   }
 
+  /**
+   * Extracts the username (email) from the provided JWT token.
+   *
+   * @param token the JWT token to parse
+   * @return the subject (username/email) embedded in the token
+   */
   public String getUsernameFromToken(String token) {
     Claims claims =
         Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
     return claims.getSubject();
   }
 
+  /**
+   * Validates the provided JWT token.
+   * <p>
+   * Checks that the token is correctly signed and not expired.
+   * </p>
+   *
+   * @param token the JWT token string
+   * @return {@code true} if the token is valid, {@code false} otherwise
+   */
   public boolean validateToken(String token) {
     try {
       Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
@@ -56,6 +85,17 @@ public class JwtTokenProvider {
     }
   }
 
+  /**
+   * Builds an {@link Authentication} object from the provided JWT token.
+   * <p>
+   * The username is extracted from the token, and a {@link UserDetails} instance is created
+   * with no password and no authorities. This is sufficient to represent an authenticated user
+   * for stateless JWT-based authentication.
+   * </p>
+   *
+   * @param token the JWT token to extract user information from
+   * @return an {@link Authentication} object populated with the token's subject
+   */
   public Authentication getAuthentication(String token) {
     String username = getUsernameFromToken(token);
 
